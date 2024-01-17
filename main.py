@@ -9,6 +9,7 @@ envmap_width = 0
 envmap_height = 0
 envmap = []
 
+#comment
 class light:
     def __init__(self, position, intensity):
         self.position = position
