@@ -38,13 +38,19 @@ class Model:
     def ray_triangle_intersect(self, fi: int, orig: Vec3f, dir: Vec3f, tnear: float, tfar=float('inf')) -> bool:
         def cross(v1: Vec3f, v2: Vec3f) -> Vec3f:
             return Vec3f(
-                v1.y * v2.z - v1.z * v2.y,
-                v1.z * v2.x - v1.x * v2.z,
-                v1.x * v2.y - v1.y * v2.x
+                v1[1] * v2[2] - v1[2] * v2[1],
+                v1[2] * v2[0] - v1[0] * v2[2],
+                v1[0] * v2[1] - v1[1] * v2[0]
             )
+            # return Vec3f(
+            #     v1.y * v2.z - v1.z * v2.y,
+            #     v1.z * v2.x - v1.x * v2.z,
+            #     v1.x * v2.y - v1.y * v2.x
+            # )
 
         def dot(v1: Vec3f, v2: Vec3f) -> float:
-            return v1.x * v2.x + v1.y * v2.y + v1.z * v2.z
+            return v1[0] * v2[0] + v1[1] * v2[1] + v1[2] * v2[2]
+            # return v1.x * v2.x + v1.y * v2.y + v1.z * v2.z
 
         dir = self.numpy_to_vec3f(dir)
 
@@ -83,10 +89,14 @@ class Model:
         min_vertex = max_vertex = self.verts[0]
         for vertex in self.verts[1:]:
             for i in range(3):
-                min_vertex = Vec3f(min(min_vertex.x, vertex.x), min(min_vertex.y, vertex.y),
-                                   min(min_vertex.z, vertex.z))
-                max_vertex = Vec3f(max(max_vertex.x, vertex.x), max(max_vertex.y, vertex.y),
-                                   max(max_vertex.z, vertex.z))
+                min_vertex = Vec3f(min(min_vertex[0], vertex[0]), min(min_vertex[1], vertex[1]),
+                                   min(min_vertex[2], vertex[2]))
+                 # min_vertex = Vec3f(min(min_vertex.x, vertex.x), min(min_vertex.y, vertex.y),
+                                  # min(min_vertex.z, vertex.z))
+                max_vertex = Vec3f(max(max_vertex[0], vertex[0]), max(max_vertex[1], vertex[1]),
+                                   max(max_vertex[2], vertex[2]))
+                # max_vertex = Vec3f(max(max_vertex.x, vertex.x), max(max_vertex.y, vertex.y),
+                                  # max(max_vertex.z, vertex.z))
         return min_vertex, max_vertex
 
     def point(self, i: int) -> Vec3f:
@@ -97,11 +107,14 @@ class Model:
         assert 0 <= fi < self.nfaces() and 0 <= li < 3
         face = self.faces[fi]
         if li == 0:
-            return face.x
+            return face[0]
+            # return face.x
         elif li == 1:
-            return face.y
+            return face[1]
+            # return face.y
         elif li == 2:
-            return face.z
+            return face[2]
+            # return face.z
 
     def __str__(self) -> str:
         output = ""
@@ -123,9 +136,12 @@ class Model:
     #         )
 
     def compute_normal(self, face):
-        v0 = self.point(face.x)
-        v1 = self.point(face.y)
-        v2 = self.point(face.z)
+        v0 = self.point(face[0])
+        v1 = self.point(face[1])
+        v2 = self.point(face[2])
+        # v0 = self.point(face.x)
+        # v1 = self.point(face.y)
+        # v2 = self.point(face.z)
         edge1 = v1 - v0
         edge2 = v2 - v0
         N = edge1.cross(edge2).normalize()
@@ -154,7 +170,8 @@ class Model:
             translated_vertex = self.verts[i] - center
 
             # Convert the translated vertex to a NumPy array
-            vertex_array = np.array([translated_vertex.x, translated_vertex.y, translated_vertex.z])
+            vertex_array = np.array([translated_vertex[0], translated_vertex[1], translated_vertex[2]])
+            # vertex_array = np.array([translated_vertex.x, translated_vertex.y, translated_vertex.z])
 
             # Apply the rotation
             rotated_vertex_array = np.dot(rotation_matrix, vertex_array)
@@ -189,7 +206,8 @@ class Model:
             translated_vertex = self.verts[i] - center
 
             # Convert the translated vertex to a NumPy array
-            vertex_array = np.array([translated_vertex.x, translated_vertex.y, translated_vertex.z])
+            vertex_array = np.array([translated_vertex[0], translated_vertex[1], translated_vertex[2]])
+            # vertex_array = np.array([translated_vertex.x, translated_vertex.y, translated_vertex.z])
 
             # Apply the rotation
             rotated_vertex_array = np.dot(rotation_matrix, vertex_array)
@@ -224,7 +242,8 @@ class Model:
             translated_vertex = self.verts[i] - center
 
             # Convert the translated vertex to a NumPy array
-            vertex_array = np.array([translated_vertex.x, translated_vertex.y, translated_vertex.z])
+            vertex_array = np.array([translated_vertex[0], translated_vertex[1], translated_vertex[2]])
+            # vertex_array = np.array([translated_vertex.x, translated_vertex.y, translated_vertex.z])
 
             # Apply the rotation
             rotated_vertex_array = np.dot(rotation_matrix, vertex_array)

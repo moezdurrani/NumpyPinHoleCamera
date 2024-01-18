@@ -101,8 +101,10 @@ def cast_ray(orig, dir, spheres, lights, duck, depth=0):
     point, N, material = scene_intersect(orig, dir, spheres, duck)
 
     if depth > 4 or point is None:
-        u = 0.5 + math.atan2(dir.x, dir.z) / (2 * math.pi)
-        v = 0.5 + math.asin(dir.y) / math.pi
+        u = 0.5 + math.atan2(dir[0], dir[2]) / (2 * math.pi)
+        v = 0.5 + math.asin(dir[1]) / math.pi
+        # u = 0.5 + math.atan2(dir.x, dir.z) / (2 * math.pi)
+        # v = 0.5 + math.asin(dir.y) / math.pi
 
         envmap_x = int(u * envmap_width)
         envmap_y = int(v * envmap_height)
@@ -164,9 +166,12 @@ def render(spheres, lights, duck):
     for j in range(height):
         for i in range(width):
             pixel_color = framebuffer[i + j * width]
-            r, g, b = int(255 * max(0, min(1, pixel_color.x))), int(255 * max(0, min(1, pixel_color.y))), int(
-                255 * max(0, min(1, pixel_color.z))
+            r, g, b = int(255 * max(0, min(1, pixel_color[0]))), int(255 * max(0, min(1, pixel_color[1]))), int(
+                255 * max(0, min(1, pixel_color[2]))
             )
+            # r, g, b = int(255 * max(0, min(1, pixel_color.x))), int(255 * max(0, min(1, pixel_color.y))), int(
+            #     255 * max(0, min(1, pixel_color.z))
+            # )
             image.putpixel((i, j), (r, g, b))
 
     print('Render Ended')
