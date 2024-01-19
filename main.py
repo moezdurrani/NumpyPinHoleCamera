@@ -127,13 +127,13 @@ def cast_ray(orig, dir, spheres, lights, duck, depth=0):
 
     for light in lights:
         light_dir = (light.position - point).normalize()
-        light_distance = (light.position - point).length()
+        light_distance = (light.position - point).norm()
 
         shadow_orig = point - N * 1e-3 if light_dir.dot(N) < 0 else point + N * 1e-3  # checking if the point lies in the shadow of lights[i]
 
         shadow_pt, shadow_N, tmpmaterial = scene_intersect(shadow_orig, light_dir, spheres, duck)
 
-        if shadow_pt is not None and (shadow_pt - shadow_orig).length() < light_distance:
+        if shadow_pt is not None and (shadow_pt - shadow_orig).norm() < light_distance:
             continue
 
         diffuse_light_intensity += light.intensity * max(0.0, light_dir.dot(N))
@@ -191,6 +191,7 @@ def load_environment_map(filename):
         envmap_width, envmap_height = image.size
         pixmap = image.tobytes()
         envmap = []
+        # envmap = np.empty(Vec3f(0, 0, 0))
         for j in range(envmap_height-1, -1, -1):
             for i in range(envmap_width):
                 r = pixmap[(i + j * envmap_width) * 3 + 0]

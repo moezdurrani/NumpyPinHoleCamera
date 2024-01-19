@@ -26,65 +26,46 @@ class Vec3f:
     # Subtract the other vector from current vector
     def __sub__(self, other):
         return Vec3f(*(self.v3 - other.v3))
-        # return Vec3f(self.v3[0]-other.v3[0], self.v3[1]-other.v3[1], self.v3[2]-other.v3[2])
 
     def dot(self, other):
         return np.dot(self.v3, other.v3)
-        # return self.v3[0] * other.v3[0] + self.v3[1] * other.v3[1] + self.v3[2] * other.v3[2]
 
-    def length(self):
-        return np.linalg.norm(self.v3)
-        # return math.sqrt(self.v3[0] * self.v3[0] + self.v3[1] * self.v3[1] + self.v3[2] * self.v3[2])
-
-    # Duplicate functions, length and norm, remove one of them
+    # # returns the length of the vector
     def norm(self):
         return np.linalg.norm(self.v3)
-        # return math.sqrt(self.v3[0] * self.v3[0] + self.v3[1] * self.v3[1] + self.v3[2] * self.v3[2])
+
 
     def normalize(self):
         length = np.linalg.norm(self.v3)
-        # length = math.sqrt(self.v3[0] ** 2 + self.v3[1] ** 2 + self.v3[2] ** 2)
         if length != 0:
             return Vec3f(*(self.v3 / length))
-            # return Vec3f(self.v3[0] / length, self.v3[1] / length, self.v3[2] / length)
         else:
             return Vec3f()
 
     def cross(self, other):
         if isinstance(other, Vec3f):
             return Vec3f(*np.cross(self.v3, other.v3))
-            # return Vec3f(
-            #     self.v3[1] * other.v3[2] - self.v3[2] * other.v3[1],
-            #     self.v3[2] * other.v3[0] - self.v3[0] * other.v3[2],
-            #     self.v3[0] * other.v3[1] - self.v3[1] * other.v3[0]
-            # )
 
     def __mul__(self, other):
         if isinstance(other, Vec3f):
             return Vec3f(*(self.v3 * other.v3))
-            # return Vec3f(self.v3[0] * other.v3[0], self.v3[1] * other.v3[1], self.v3[2] * other.v3[2])
         elif isinstance(other, (int, float)):
             return Vec3f(*(self.v3 * other))
-            # return Vec3f(self.v3[0] * other, self.v3[1] * other, self.v3[2] * other)
 
     def __rmul__(self, scalar):
         return self.__mul__(scalar)
 
     def __add__(self, other):
         return Vec3f(*(self.v3 + other.v3))
-        # return Vec3f(self.v3[0] + other.v3[0], self.v3[1] + other.v3[1], self.v3[2] + other.v3[2])
 
     def __neg__(self):
         return Vec3f(*(-1 * self.v3))
-        # return Vec3f(-self.v3[0], -self.v3[1], -self.v3[2])
 
     def __truediv__(self, other):
         if isinstance(other, (int, float)):
             return Vec3f(*(self.v3 / other))
-            # return Vec3f(self.v3[0] / other, self.v3[1] / other, self.v3[2] / other)
         elif isinstance(other, Vec3f):
             return Vec3f(*(self.v3 / other.v3))
-            # return Vec3f(self.v3[0] / other.v3[0], self.v3[1] / other.v3[1], self.v3[2] / other.v3[2])
         else:
             raise TypeError("Unsupported operand type for division.")
 
