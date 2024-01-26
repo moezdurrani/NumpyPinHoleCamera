@@ -9,6 +9,8 @@ envmap_width = 0
 envmap_height = 0
 envmap = []
 
+# Checking if git is working
+
 #comment
 class light:
     def __init__(self, position, intensity):
