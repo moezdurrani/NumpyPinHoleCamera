@@ -9,7 +9,7 @@ envmap_width = 0
 envmap_height = 0
 envmap = []
 
-# Checking if git is working
+# again Checking if git is working
 
 #comment
 class light:
