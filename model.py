@@ -17,11 +17,13 @@ class Model:
                     line = line.strip()
                     if line.startswith('v '):
                         coordinates = line[2:].split()
-                        vertex = Vec3f(float(coordinates[0])+x, float(coordinates[1])+y, float(coordinates[2])+z)
+                        vertex = np.array([float(coordinates[0]) + x, float(coordinates[1]) + y, float(coordinates[2]) + z])
+                        # vertex = Vec3f(float(coordinates[0])+x, float(coordinates[1])+y, float(coordinates[2])+z)
                         self.verts.append(vertex)
                     elif line.startswith('f '):
                         indices = line[2:].split()
-                        face = Vec3i(int(indices[0]) - 1, int(indices[1]) - 1, int(indices[2]) - 1)
+                        face = np.array([int(indices[0]) - 1, int(indices[1]) - 1, int(indices[2]) - 1])
+                        # face = Vec3i(int(indices[0]) - 1, int(indices[1]) - 1, int(indices[2]) - 1)
                         self.faces.append(face)
         except FileNotFoundError:
             print(f"Failed to open {filename}")
@@ -35,39 +37,91 @@ class Model:
     def numpy_to_vec3f(self, np_array):
         return Vec3f(np_array[0], np_array[1], np_array[2])
 
-    def ray_triangle_intersect(self, fi: int, orig: Vec3f, dir: Vec3f, tnear: float, tfar=float('inf')) -> bool:
-        def cross(v1: Vec3f, v2: Vec3f) -> Vec3f:
-            return Vec3f(
-                v1[1] * v2[2] - v1[2] * v2[1],
-                v1[2] * v2[0] - v1[0] * v2[2],
-                v1[0] * v2[1] - v1[1] * v2[0]
-            )
+    def ray_triangle_intersect(self, fi: int, orig: np.ndarray, dir: np.ndarray, tnear: float, tfar=float('inf')) -> bool:
+        # def cross(v1: np.ndarray, v2: np.ndarray) -> np.ndarray:
+        #     return np.array([
+        #         v1[1] * v2[2] - v1[2] * v2[1],
+        #         v1[2] * v2[0] - v1[0] * v2[2],
+        #         v1[0] * v2[1] - v1[1] * v2[0]
+        #     ])
+            # return Vec3f(
+            #     v1[1] * v2[2] - v1[2] * v2[1],
+            #     v1[2] * v2[0] - v1[0] * v2[2],
+            #     v1[0] * v2[1] - v1[1] * v2[0]
+            # )
 
-        def dot(v1: Vec3f, v2: Vec3f) -> float:
-            return v1[0] * v2[0] + v1[1] * v2[1] + v1[2] * v2[2]
+        # def dot(v1: np.ndarray, v2: np.ndarray) -> float:
+        #     return v1[0] * v2[0] + v1[1] * v2[1] + v1[2] * v2[2]
 
-        dir = self.numpy_to_vec3f(dir)
+        # dir = self.numpy_to_vec3f(dir)
 
-        edge1 = self.point(self.vert(fi, 1)) - self.point(self.vert(fi, 0))
-        edge2 = self.point(self.vert(fi, 2)) - self.point(self.vert(fi, 0))
-        pvec = cross(dir, edge2)
-        det = dot(edge1, pvec)
+        face_indices = self.faces[fi]
+
+        # Get vertices for the current face
+        v0 = self.verts[self.faces[fi][0]]
+        v1 = self.verts[self.faces[fi][1]]
+        v2 = self.verts[self.faces[fi][2]]
+        # v0 = self.verts[face_indices[0]]
+        # v1 = self.verts[face_indices[1]]
+        # v2 = self.verts[face_indices[2]]
+
+        edge1 = v1 - v0
+        edge2 = v2 - v0
+
+        # Begin calculating determinant - also used to calculate u parameter
+        pvec = np.cross(dir, edge2)
+        det = np.dot(edge1, pvec)
+
+        # edge1 = self.point(self.vert(fi, 1)) - self.point(self.vert(fi, 0))
+        # edge2 = self.point(self.vert(fi, 2)) - self.point(self.vert(fi, 0))
+        # pvec = cross(dir, edge2)
+        # det = np.dot(dir, edge2)
+        # # det = dot(edge1, pvec)
+
         if det < 1e-5:
             return False
 
-        tvec = orig - self.point(self.vert(fi, 0))
-        u = dot(tvec, pvec)
-        if u < 0 or u > det:
+        # if det < 1e-5 and det > -1e-5:
+        #     return False
+
+        inv_det = 1.0 / det
+
+        # Calculate distance from v0 to ray origin
+        tvec = orig - v0
+
+        # Calculate u parameter and test bound
+        u = np.dot(tvec, pvec) * inv_det
+        if u < 0.0 or u > 1.0:
             return False
 
-        qvec = cross(tvec, edge1)
-        v = dot(dir, qvec)
+        # tvec = orig - self.point(self.vert(fi, 0))
+        # u = dot(tvec, pvec)
+        # if u < 0 or u > det:
+        #     return False
+
+        # Prepare to test v parameter
+        qvec = np.cross(tvec, edge1)
+
+        # qvec = cross(tvec, edge1)
+
+        # v = dot(dir, qvec)
+        v = np.dot(dir, qvec)
         if v < 0 or u + v > det:
             return False
 
-        inv_det = 1.0 / det
-        tnear = dot(edge2, qvec) * inv_det
-        return tnear > 1e-5
+        # Calculate V parameter and test bound
+        v = np.dot(dir, qvec) * inv_det
+        if v < 0.0 or u + v > 1.0:
+            return False
+
+        # Calculate t, ray intersects triangle
+        t = np.dot(edge2, qvec) * inv_det
+
+        return (t > 1e-5) and (t < tfar)
+
+        # inv_det = 1.0 / det
+        # tnear = dot(edge2, qvec) * inv_det
+        # return tnear > 1e-5
 
     def nverts(self) -> int:
         return len(self.verts)
@@ -75,18 +129,22 @@ class Model:
     def nfaces(self) -> int:
         return len(self.faces)
 
-    def get_face(self, index: int) -> Vec3i:
+    def get_face(self, index: int) -> np.ndarray:
         assert 0 <= index < self.nfaces()
         return self.faces[index]
 
-    def get_bbox(self) -> (Vec3f, Vec3f):
+    def get_bbox(self) -> (np.ndarray, np.ndarray):
         min_vertex = max_vertex = self.verts[0]
         for vertex in self.verts[1:]:
             for i in range(3):
-                min_vertex = Vec3f(min(min_vertex[0], vertex[0]), min(min_vertex[1], vertex[1]),
-                                   min(min_vertex[2], vertex[2]))
-                max_vertex = Vec3f(max(max_vertex[0], vertex[0]), max(max_vertex[1], vertex[1]),
-                                   max(max_vertex[2], vertex[2]))
+                min_vertex = np.array([min(min_vertex[0], vertex[0]), min(min_vertex[1], vertex[1]),
+                                   min(min_vertex[2], vertex[2])])
+                max_vertex = np.array([max(max_vertex[0], vertex[0]), max(max_vertex[1], vertex[1]),
+                                   max(max_vertex[2], vertex[2])])
+                # min_vertex = Vec3f(min(min_vertex[0], vertex[0]), min(min_vertex[1], vertex[1]),
+                #                    min(min_vertex[2], vertex[2]))
+                # max_vertex = Vec3f(max(max_vertex[0], vertex[0]), max(max_vertex[1], vertex[1]),
+                #                    max(max_vertex[2], vertex[2]))
         return min_vertex, max_vertex
 
     def point(self, i: int) -> Vec3f:
@@ -123,14 +181,22 @@ class Model:
         v2 = self.point(face[2])
         edge1 = v1 - v0
         edge2 = v2 - v0
-        N = edge1.cross(edge2).normalize()
+
+        # N = edge1.cross(edge2).normalize()
+
+        N = np.cross(edge1, edge2)
+        Nmagnitude = np.linalg.norm(N)
+        N = N / Nmagnitude if Nmagnitude != 0 else N
+
+
         return N
 
     def rotate_x(self, angle_degrees):
         # Calculate the center of the model
-        center = Vec3f(0, 0, 0)
+        # center = Vec3f(0, 0, 0)
+        center = np.array([0.0, 0.0, 0.0])
         for vertex in self.verts:
-            center += vertex
+            center += np.array(vertex)
         center /= len(self.verts)
 
         # Convert the angle from degrees to radians
@@ -155,7 +221,8 @@ class Model:
             rotated_vertex_array = np.dot(rotation_matrix, vertex_array)
 
             # Update the vertex in the verts list
-            self.verts[i] = Vec3f(rotated_vertex_array[0], rotated_vertex_array[1], rotated_vertex_array[2])
+            self.verts[i] = np.array([rotated_vertex_array[0], rotated_vertex_array[1], rotated_vertex_array[2]])
+            # self.verts[i] = Vec3f(rotated_vertex_array[0], rotated_vertex_array[1], rotated_vertex_array[2])
 
         # Translate the model back to its original position
         for i in range(self.nverts()):
@@ -163,9 +230,10 @@ class Model:
 
     def rotate_y(self, angle_degrees):
         # Calculate the center of the model
-        center = Vec3f(0, 0, 0)
+        # center = Vec3f(0, 0, 0)
+        center = np.array([0.0, 0.0, 0.0])
         for vertex in self.verts:
-            center += vertex
+            center += np.array(vertex)
         center /= len(self.verts)
 
         # Convert the angle from degrees to radians
@@ -190,7 +258,8 @@ class Model:
             rotated_vertex_array = np.dot(rotation_matrix, vertex_array)
 
             # Update the vertex in the verts list
-            self.verts[i] = Vec3f(rotated_vertex_array[0], rotated_vertex_array[1], rotated_vertex_array[2])
+            self.verts[i] = np.array([rotated_vertex_array[0], rotated_vertex_array[1], rotated_vertex_array[2]])
+            # self.verts[i] = Vec3f(rotated_vertex_array[0], rotated_vertex_array[1], rotated_vertex_array[2])
 
         # Translate the model back to its original position
         for i in range(self.nverts()):
@@ -198,9 +267,10 @@ class Model:
 
     def rotate_z(self, angle_degrees):
         # Calculate the center of the model
-        center = Vec3f(0, 0, 0)
+        # center = Vec3f(0, 0, 0)
+        center = np.array([0.0, 0.0, 0.0])
         for vertex in self.verts:
-            center += vertex
+            center += np.array(vertex)
         center /= len(self.verts)
 
         # Convert the angle from degrees to radians
@@ -225,7 +295,8 @@ class Model:
             rotated_vertex_array = np.dot(rotation_matrix, vertex_array)
 
             # Update the vertex in the verts list
-            self.verts[i] = Vec3f(rotated_vertex_array[0], rotated_vertex_array[1], rotated_vertex_array[2])
+            self.verts[i] = np.array([rotated_vertex_array[0], rotated_vertex_array[1], rotated_vertex_array[2]])
+            # self.verts[i] = Vec3f(rotated_vertex_array[0], rotated_vertex_array[1], rotated_vertex_array[2])
 
         # Translate the model back to its original position
         for i in range(self.nverts()):
