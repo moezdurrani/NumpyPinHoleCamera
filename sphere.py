@@ -1,5 +1,4 @@
-import math
-from vectors import *
+import numpy as np
 
 class Sphere:
     def __init__(self, center, radius, material):

@@ -1,5 +1,4 @@
 import sys
-from vectors import *
 import numpy as np
 
 class Model:
@@ -32,8 +31,8 @@ class Model:
         min_vertex, max_vertex = self.get_bbox()
         #print(f"bbox: [{min_vertex} : {max_vertex}]")
 
-    def numpy_to_vec3f(self, np_array):
-        return Vec3f(np_array[0], np_array[1], np_array[2])
+    # def numpy_to_vec3f(self, np_array):
+    #     return Vec3f(np_array[0], np_array[1], np_array[2])
 
     def ray_triangle_intersect(self, fi: int, orig: np.ndarray, dir: np.ndarray, tnear: float, tfar=float('inf')) -> bool:
 
@@ -101,9 +100,12 @@ class Model:
                                    max(max_vertex[2], vertex[2])])
         return min_vertex, max_vertex
 
-    def point(self, i: int) -> Vec3f:
+    def point(self, i: int) -> np.ndarray:
         assert 0 <= i < self.nverts()
         return self.verts[i]
+    # def point(self, i: int) -> Vec3f:
+    #     assert 0 <= i < self.nverts()
+    #     return self.verts[i]
 
     def vert(self, fi: int, li: int) -> int:
         assert 0 <= fi < self.nfaces() and 0 <= li < 3
