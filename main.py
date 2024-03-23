@@ -107,13 +107,12 @@ def cast_ray(orig, dir, spheres, lights, renderModel, depth=0):
     if depth > 4 or point is None:
         dir_normalized = dir / np.linalg.norm(dir)
 
-        # Assuming the front image is directly in front of the camera
-        # and spans the entire field of view, we can map the direction
-        # directly to image coordinates. We map x to u and y to v.
+        # Compute the aspect ratio of the input image
+        aspect_ratio = front_img_width / front_img_height
 
-        # Convert [-1,1] range to [0,1] range (after perspective divide by z=-1)
-        u = 0.5 * (dir_normalized[0] + 1.0)
-        v = 0.5 * (dir_normalized[1] + 1.0)
+        # Map the ray direction to image coordinates
+        u = 0.5 * (dir_normalized[0] / (dir_normalized[2] * aspect_ratio) + 1.0)
+        v = 0.5 * (dir_normalized[1] / dir_normalized[2] + 1.0)
 
         # Scale u and v to image dimensions
         x = int(u * front_img_width)
