@@ -9,6 +9,13 @@ envmap_width = 0
 envmap_height = 0
 envmap = []
 
+front_img = []
+front_img_width = 0
+front_img_height = 0
+
+global image_distance
+image_distance = -5
+
 #comment
 class light:
     def __init__(self, position, intensity):
@@ -78,17 +85,18 @@ def scene_intersect(orig, dir, spheres, renderModel):
 
             material = spheres[i].material
 
-    obj_dist = float('inf')  # Initialize obj_dist with infinity
-    faces = renderModel.faces  # Get the list of faces from the duck model
-    for fi in range(renderModel.nfaces()):
-        tnear = [0.0]  # Create a list to store the intersection distance
-        if renderModel.ray_triangle_intersect(fi, orig, dir, tnear[0]):
-            face = renderModel.get_face(fi)
-            if tnear[0] < obj_dist:  # Check if the new intersection is closer
-                obj_dist = tnear[0]  # Update the obj_dist variable
-                hit = orig + dir * tnear[0]
-                N = renderModel.compute_normal(face)  # Compute the surface normal for the triangle
-                material = renderModel.material
+    if renderModel is not None:
+        obj_dist = float('inf')  # Initialize obj_dist with infinity
+        faces = renderModel.faces  # Get the list of faces from the duck model
+        for fi in range(renderModel.nfaces()):
+            tnear = [0.0]  # Create a list to store the intersection distance
+            if renderModel.ray_triangle_intersect(fi, orig, dir, tnear[0]):
+                face = renderModel.get_face(fi)
+                if tnear[0] < obj_dist:  # Check if the new intersection is closer
+                    obj_dist = tnear[0]  # Update the obj_dist variable
+                    hit = orig + dir * tnear[0]
+                    N = renderModel.compute_normal(face)  # Compute the surface normal for the triangle
+                    material = renderModel.material
 
     return hit, N, material
 
@@ -97,15 +105,34 @@ def cast_ray(orig, dir, spheres, lights, renderModel, depth=0):
     point, N, material = scene_intersect(orig, dir, spheres, renderModel)
 
     if depth > 4 or point is None:
-        u = 0.5 + math.atan2(dir[0], dir[2]) / (2 * math.pi)
-        v = 0.5 + math.asin(dir[1]) / math.pi
+        dir_normalized = dir / np.linalg.norm(dir)
 
-        envmap_x = int(u * envmap_width)
-        envmap_y = int(v * envmap_height)
+        # Assuming the front image is directly in front of the camera
+        # and spans the entire field of view, we can map the direction
+        # directly to image coordinates. We map x to u and y to v.
 
-        background_color = envmap[envmap_x + envmap_y * envmap_width]
+        # Convert [-1,1] range to [0,1] range (after perspective divide by z=-1)
+        u = 0.5 * (dir_normalized[0] + 1.0)
+        v = 0.5 * (dir_normalized[1] + 1.0)
 
+        # Scale u and v to image dimensions
+        x = int(u * front_img_width)
+        y = int(v * front_img_height)
+
+        # Clamp to bounds of the image
+        x = max(0, min(front_img_width - 1, x))
+        y = max(0, min(front_img_height - 1, y))
+
+        # Fetch the color from the front image
+        background_color = front_img[x + y * front_img_width]
         return background_color
+
+        # u = 0.5 + math.atan2(dir[0], dir[2]) / (2 * math.pi)
+        # v = 0.5 + math.asin(dir[1]) / math.pi
+        # envmap_x = int(u * envmap_width)
+        # envmap_y = int(v * envmap_height)
+        # background_color = envmap[envmap_x + envmap_y * envmap_width]
+        # return background_color
 
     reflect_dir = dir - 2.0 * np.dot(dir, N) * N
     reflectMagnitude = np.linalg.norm(reflect_dir)
@@ -156,7 +183,7 @@ def render(spheres, lights, renderModel):
     renderStartTime = time.time()
     width = 1024
     height = 768
-    fov = math.pi / 3.0 # Field of View of the camera
+    fov = math.pi / 2.0 # Field of View of the camera
     framebuffer = [np.array([0, 0, 0])] * (width * height)
 
     for j in range(height):
@@ -213,13 +240,35 @@ def load_environment_map(filename):
         sys.stderr.write("Error: can not load the environment map\n")
         sys.exit(-1)
 
+
+def load_front_image(filename):
+    global front_img, front_img_width, front_img_height
+    try:
+        image = Image.open(filename)
+        image = image.convert("RGB")  # Ensure image is in RGB format
+        front_img_width, front_img_height = image.size
+        front_img = np.array(image).reshape(-1, 3) / 255.0  # Flatten the image array and normalize
+        # image = Image.open(filename)
+        # front_img_width, front_img_height = image.size
+        # front_img = []
+        # for j in range(front_img_height):
+        #     for i in range(front_img_width):
+        #         pixel = image.getpixel((i, j))
+        #         front_img.append(np.array(pixel) * (1 / 255.0))  # Normalize the pixel values
+    except IOError:
+        sys.stderr.write("Error: cannot load the front image\n")
+        sys.exit(-1)
+
+
 def main():
+
 
     start_time = time.time()
 
     print('Main program started')
 
-    envmap, envmap_width, envmap_height = load_environment_map("envmap.jpg")
+    # envmap, envmap_width, envmap_height = load_environment_map("envmap.jpg")
+    load_front_image("tree.jpg")
 
     print('Environment loaded')
     ivory = Material(1.0, (0.6, 0.3, 0.1, 0.0), (0.4, 0.4, 0.3), 50.0)
@@ -243,8 +292,20 @@ def main():
     print('Lights, spheres and materials added')
 
     model_start_time = time.time()
+
+    load_model = False  # Set this to False to skip loading the 3D model
+    renderModel = None
+
+    if load_model:
+        renderModel = Model('objFiles/prism.obj', glass, 0, 0, -18)
+        print("Obj Model Created")
+        renderModel.rotate(90, 45, 0)
+
+
     # Arguments are name of obj File, material, x, y , z (coordinates)
-    renderModel = Model('objFiles/prism.obj', red_rubber, 0, 0, -18)
+    # renderModel = Model('objFiles/prism.obj', glass, 0, 0, -18)
+
+
     model_end_time = time.time()
     execution_time = (model_end_time - model_start_time) / 60.0
     print("Obj Model Created")
@@ -254,7 +315,6 @@ def main():
     # X axis -> Left to right horizontal on the screen
     # Y axis -> Bottom to top vertical on the screen
     # Z axis -> Out of the screen
-    renderModel.rotate(90, 0, 0)
 
     render(spheres,lights, renderModel)
 
