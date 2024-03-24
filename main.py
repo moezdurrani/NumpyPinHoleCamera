@@ -1,11 +1,10 @@
-# with zoom
 import argparse
 import sys
 from PIL import Image
 import math
 from model import Model
 import time
-import numpy as np
+# import numpy as np
 from sphere import *
 
 envmap_width = 0
@@ -90,7 +89,6 @@ def scene_intersect(orig, dir, spheres, renderModel):
 
     if renderModel is not None:
         obj_dist = float('inf')  # Initialize obj_dist with infinity
-        faces = renderModel.faces  # Get the list of faces from the duck model
         for fi in range(renderModel.nfaces()):
             tnear = [0.0]  # Create a list to store the intersection distance
             if renderModel.ray_triangle_intersect(fi, orig, dir, tnear[0]):
@@ -180,11 +178,15 @@ def cast_ray(orig, dir, spheres, lights, renderModel, zoom_factor, maxDepth, dep
                                                                       1.0]) * specular_light_intensity * albedo_1 + reflect_color * albedo_2 + refract_color * albedo_3
 
 def render(imgSize, spheres, lights, renderModel, zoomFactor, maxDepth):
-    print('Render Started')
 
+    print('Rendering Started')
     renderStartTime = time.time()
-    width = imgSize[0]
-    height = imgSize[1]
+
+    width, height = imgSize
+
+    total_pixels = width * height
+    pixels_processed = 0
+
     fov = math.pi / 2.0 # Field of View of the camera
     framebuffer = [np.array([0, 0, 0])] * (width * height)
 
@@ -199,6 +201,14 @@ def render(imgSize, spheres, lights, renderModel, zoomFactor, maxDepth):
 
             framebuffer[i + j * width] = cast_ray(np.array([0, 0, 0]), dir, spheres, lights, renderModel, zoomFactor, maxDepth)
 
+            pixels_processed += 1
+            progress = pixels_processed / total_pixels
+            hashes = '#' * int(progress * 10)
+            spaces = '-' * (10 - len(hashes))
+            percentage = progress * 100
+            sys.stdout.write(f"\rRendering Progress: {percentage:.2f}% [{hashes}{spaces}] {pixels_processed}/{total_pixels} rays processed")
+            sys.stdout.flush()
+
     image = Image.new("RGB", (width, height))
 
     for j in range(height):
@@ -209,39 +219,13 @@ def render(imgSize, spheres, lights, renderModel, zoomFactor, maxDepth):
             )
             image.putpixel((i, j), (r, g, b))
 
+    print("")
     print('Render Ended')
 
     renderEndTime = time.time()
     renderTime = (renderEndTime - renderStartTime) / 60
-    print(f"Render Time: {renderTime: .3f} minutes")
+    print(f"Render Time: {renderTime: .3f} mins")
     image.save("out.png", "PNG")
-
-def load_environment_map(filename):
-
-    envMapStartTime = time.time()
-
-    global envmap, envmap_width, envmap_height
-    try:
-        image = Image.open(filename)
-        envmap_width, envmap_height = image.size
-        pixmap = image.tobytes()
-        envmap = []
-        for j in range(envmap_height-1, -1, -1):
-            for i in range(envmap_width):
-                r = pixmap[(i + j * envmap_width) * 3 + 0]
-                g = pixmap[(i + j * envmap_width) * 3 + 1]
-                b = pixmap[(i + j * envmap_width) * 3 + 2]
-                envmap.append(np.array([r, g, b]) * (1 / 255.0))
-
-        envMapEndTime = time.time()
-        envMapTime = (envMapEndTime - envMapStartTime)
-        print(f"Environment Map Loading Time: {envMapTime: .3f} seconds")
-
-        return envmap, envmap_width, envmap_height
-    except IOError:
-        sys.stderr.write("Error: can not load the environment map\n")
-        sys.exit(-1)
-
 
 def load_front_image(filename):
     global front_img, front_img_width, front_img_height
@@ -250,13 +234,6 @@ def load_front_image(filename):
         image = image.convert("RGB")  # Ensure image is in RGB format
         front_img_width, front_img_height = image.size
         front_img = np.array(image).reshape(-1, 3) / 255.0  # Flatten the image array and normalize
-        # image = Image.open(filename)
-        # front_img_width, front_img_height = image.size
-        # front_img = []
-        # for j in range(front_img_height):
-        #     for i in range(front_img_width):
-        #         pixel = image.getpixel((i, j))
-        #         front_img.append(np.array(pixel) * (1 / 255.0))  # Normalize the pixel values
     except IOError:
         sys.stderr.write("Error: cannot load the front image\n")
         sys.exit(-1)
@@ -264,35 +241,19 @@ def load_front_image(filename):
 
 def main(args):
 
-    # frontImg = "tree.jpg"
-    frontImg = args.frontImg
-
-    # modelName = "objFiles/prism.obj"
-    modelName = args.modelName
-
-    # maxDepth = 4
-    maxDepth = args.maxDepth
-
-    # modelx, modely, modelz = (0, 0, -18)
-    modelx, modely, modelz = args.modelx, args.modely, args.modelz
-
-    # modelxR, modelyR, modelzR = (90, 45, 0)
-    modelxR, modelyR, modelzR = args.modelxR, args.modelyR, args.modelzR
-
-    # imgSize = (1024, 768)
-    imgSize = (args.imgWidth, args.imgHeight)
-
-    # zoomFactor = 2
-    zoomFactor = args.zoomFactor
-
-    start_time = time.time()
-
+    mainStartTime = time.time()
     print('Main program started')
 
-    # envmap, envmap_width, envmap_height = load_environment_map("envmap.jpg")
+    frontImg = args.frontImg
+    modelName = args.modelName
+    maxDepth = args.maxDepth
+    modelx, modely, modelz = args.modelx, args.modely, args.modelz
+    modelxR, modelyR, modelzR = args.modelxR, args.modelyR, args.modelzR
+    imgSize = (args.imgWidth, args.imgHeight)
+    zoomFactor = args.zoomFactor
+
     load_front_image(frontImg)
 
-    print('Environment loaded')
     ivory = Material(1.0, (0.6, 0.3, 0.1, 0.0), (0.4, 0.4, 0.3), 50.0)
     glass = Material(1.5, (0.0,  0.5, 0.1, 0.8), (0.6, 0.7, 0.8), 125.0)
     red_rubber = Material(1.0, (0.9, 0.1, 0.0, 0.0), (0.3, 0.1, 0.1), 10.0)
@@ -300,52 +261,40 @@ def main(args):
     grayEasy = Material(1.0, (1.0, 0.0, 0.0, 0.0), (0.5, 0.5, 0.5), 0.0)
 
     spheres = []
-    # spheres.append(Sphere(np.array([-3, 0, -16]), 2, ivory))
     spheres.append(Sphere(np.array([0.0, 0.0, -18]), 4, glass))
-    # spheres.append(Sphere(np.array([1.5, -0.5, -18]), 3, red_rubber))
-    # spheres.append(Sphere(np.array([7, 5, -18]), 4, mirror))
-    # spheres.append(Sphere(np.array([3, 0, -10]), 3, red_rubber))
 
     lights = []
     lights.append(light(np.array([-20, 20, 20]), 1.5))
     lights.append(light(np.array([30, 50, -25]), 1.8))
     lights.append(light(np.array([30, 20, 30]), 1.7))
 
-    print('Lights, spheres and materials added')
-
-    model_start_time = time.time()
+    print('Lights, and Materials Loaded')
 
     load_model = False  # Set this to False to skip loading the 3D model
     renderModel = None
 
     if load_model:
+        print("Loading 3d Model")
+        modelStartTime = time.time()
         # Arguments are name of obj File, material, x, y , z (coordinates)
         renderModel = Model(modelName, glass, modelx, modely, modelz)
-        print("Obj Model Created")
+
         # Rotation around x, y, and z axis (degrees) CCW
         # X axis -> Left to right horizontal on the screen
         # Y axis -> Bottom to top vertical on the screen
         # Z axis -> Out of the screen
         renderModel.rotate(modelxR, modelyR, modelzR)
+        print("3D Model Created")
+        modelEndTime = time.time()
+        modelExecutionTime = (modelEndTime - modelStartTime) / 60.0
+        print(f"3D Model Creation Time: {modelExecutionTime: .3f} mins")
 
-    model_end_time = time.time()
-    execution_time = (model_end_time - model_start_time) / 60.0
-    print("Obj Model Created")
-    print(f"Obj Model Creation time: {execution_time: .3f} minutes")
 
     render(imgSize, spheres,lights, renderModel, zoomFactor, maxDepth)
 
-    end_time = time.time()  # Stop measuring the execution time
-    execution_time = (end_time - start_time) / 60.0
-    print(f"Total execution time: {execution_time: .3f} minutes")
-
-    # imagze size - DONE
-    # model fileName - DONE
-    # materials - DONE
-    # max depth - DONE
-    # model coordinates - DONE
-    # model rotation - DONE
-    # zoomFactor - DONE
+    mainEndTime = time.time()  # Stop measuring the execution time
+    mainExecutionTime = (mainEndTime - mainStartTime) / 60.0
+    print(f"Total Execution Time: {mainExecutionTime: .3f} mins")
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Render a 3D scene with ray tracing.")
