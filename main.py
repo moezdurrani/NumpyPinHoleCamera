@@ -4,6 +4,7 @@ import math
 from model import Model
 import time
 import numpy as np
+from sphere import *
 
 envmap_width = 0
 envmap_height = 0
@@ -110,11 +111,25 @@ def cast_ray(orig, dir, spheres, lights, renderModel, depth=0):
         # Compute the aspect ratio of the input image
         aspect_ratio = front_img_width / front_img_height
 
-        # Map the ray direction to image coordinates
         u = 0.5 * (dir_normalized[0] / (dir_normalized[2] * aspect_ratio) + 1.0)
         v = 0.5 * (dir_normalized[1] / dir_normalized[2] + 1.0)
 
-        # Scale u and v to image dimensions
+        # Apply a scaling factor to zoom out the background image
+        zoom_factor = 2  # Increase to make the picture smaller
+        u = u * zoom_factor
+        v = v * zoom_factor
+
+        # Center the image by adding the necessary offset after the zoom
+        u_offset = (1 - zoom_factor) / 2
+        v_offset = (1 - zoom_factor) / 2
+        u = u + u_offset
+        v = v + v_offset
+
+        # Check if the scaled coordinates are out of the image bounds
+        if u < 0 or u > 1 or v < 0 or v > 1:
+            return np.array([0, 0, 0])
+
+            # Scale u and v to image dimensions
         x = int(u * front_img_width)
         y = int(v * front_img_height)
 
@@ -153,24 +168,17 @@ def cast_ray(orig, dir, spheres, lights, renderModel, depth=0):
     for light in lights:
 
         light_distance = np.linalg.norm(light.position - point) # Magnitude
-
         light_dir = (light.position - point) / light_distance if light_distance != 0 else (light.position - point)
-
         shadow_orig = point - N * 1e-3 if np.dot(light_dir, N) < 0 else point + N * 1e-3 # checking if the point lies in the shadow of lights[i]
-
         shadow_pt, shadow_N, tmpmaterial = scene_intersect(shadow_orig, light_dir, spheres, renderModel)
-
         if shadow_pt is not None and np.linalg.norm(shadow_pt - shadow_orig) < light_distance:
             continue
-
         diffuse_light_intensity += light.intensity * max(0.0, np.dot(light_dir, N))
-
         reflected_dir = reflect(-light_dir, N)
         specular_intensity = np.power(np.maximum(0.0, -np.dot(reflected_dir, dir)), material.specular_exponent)
         specular_light_intensity += specular_intensity * light.intensity
 
     diffuse_color = np.array(material.diffuse_color)  # Convert tuple to np array
-
     albedo_0, albedo_1, albedo_2, albedo_3 = material.albedo  # Unpack albedo components
 
     return diffuse_color * diffuse_light_intensity * albedo_0 + np.array([1.0, 1.0,
@@ -278,7 +286,7 @@ def main():
 
     spheres = []
     # spheres.append(Sphere(np.array([-3, 0, -16]), 2, ivory))
-    # spheres.append(Sphere(np.array([-1.0, -1.5, -12]), 2, glass))
+    spheres.append(Sphere(np.array([0.0, 0.0, -18]), 4, glass))
     # spheres.append(Sphere(np.array([1.5, -0.5, -18]), 3, red_rubber))
     # spheres.append(Sphere(np.array([7, 5, -18]), 4, mirror))
     # spheres.append(Sphere(np.array([3, 0, -10]), 3, red_rubber))
