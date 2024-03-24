@@ -1,5 +1,5 @@
 # with zoom
-
+import argparse
 import sys
 from PIL import Image
 import math
@@ -262,15 +262,28 @@ def load_front_image(filename):
         sys.exit(-1)
 
 
-def main():
+def main(args):
 
-    frontImg = "tree.jpg"
-    modelName = "objFiles/prism.obj"
-    maxDepth = 4
-    modelx, modely, modelz = (0, 0, -18)
-    modelxR, modelyR, modelzR = (90, 45, 0)
-    imgSize = (1024, 768)
-    zoomFactor = 2
+    # frontImg = "tree.jpg"
+    frontImg = args.frontImg
+
+    # modelName = "objFiles/prism.obj"
+    modelName = args.modelName
+
+    # maxDepth = 4
+    maxDepth = args.maxDepth
+
+    # modelx, modely, modelz = (0, 0, -18)
+    modelx, modely, modelz = args.modelx, args.modely, args.modelz
+
+    # modelxR, modelyR, modelzR = (90, 45, 0)
+    modelxR, modelyR, modelzR = args.modelxR, args.modelyR, args.modelzR
+
+    # imgSize = (1024, 768)
+    imgSize = (args.imgWidth, args.imgHeight)
+
+    # zoomFactor = 2
+    zoomFactor = args.zoomFactor
 
     start_time = time.time()
 
@@ -335,4 +348,20 @@ def main():
     # zoomFactor - DONE
 
 if __name__ == "__main__":
-    main()
+    parser = argparse.ArgumentParser(description="Render a 3D scene with ray tracing.")
+    parser.add_argument("--frontImg", type=str, default="tree.jpg", help="Path to the front image.")
+    parser.add_argument("--modelName", type=str, default="objFiles/prism.obj", help="Path to the 3D model file.")
+    parser.add_argument("--maxDepth", type=int, default=4, help="Maximum depth for ray tracing.")
+    parser.add_argument("--modelx", type=float, default=0, help="Model x coordinate.")
+    parser.add_argument("--modely", type=float, default=0, help="Model y coordinate.")
+    parser.add_argument("--modelz", type=float, default=-18, help="Model z coordinate.")
+    parser.add_argument("--modelxR", type=float, default=90, help="Model rotation around the x-axis.")
+    parser.add_argument("--modelyR", type=float, default=45, help="Model rotation around the y-axis.")
+    parser.add_argument("--modelzR", type=float, default=0, help="Model rotation around the z-axis.")
+    parser.add_argument("--imgWidth", type=int, default=1024, help="Width of the output image.")
+    parser.add_argument("--imgHeight", type=int, default=768, help="Height of the output image.")
+    parser.add_argument("--zoomFactor", type=float, default=2, help="Zoom factor for the camera.")
+
+    args = parser.parse_args()
+
+    main(args)
