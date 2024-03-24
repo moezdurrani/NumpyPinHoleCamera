@@ -1,3 +1,5 @@
+# with zoom
+
 import sys
 from PIL import Image
 import math
@@ -101,11 +103,11 @@ def scene_intersect(orig, dir, spheres, renderModel):
 
     return hit, N, material
 
-def cast_ray(orig, dir, spheres, lights, renderModel, depth=0):
+def cast_ray(orig, dir, spheres, lights, renderModel, zoom_factor, maxDepth, depth=0):
 
     point, N, material = scene_intersect(orig, dir, spheres, renderModel)
 
-    if depth > 4 or point is None:
+    if depth > maxDepth or point is None:
         dir_normalized = dir / np.linalg.norm(dir)
 
         # Compute the aspect ratio of the input image
@@ -115,7 +117,6 @@ def cast_ray(orig, dir, spheres, lights, renderModel, depth=0):
         v = 0.5 * (dir_normalized[1] / dir_normalized[2] + 1.0)
 
         # Apply a scaling factor to zoom out the background image
-        zoom_factor = 2  # Increase to make the picture smaller
         u = u * zoom_factor
         v = v * zoom_factor
 
@@ -129,7 +130,7 @@ def cast_ray(orig, dir, spheres, lights, renderModel, depth=0):
         if u < 0 or u > 1 or v < 0 or v > 1:
             return np.array([0, 0, 0])
 
-            # Scale u and v to image dimensions
+        # Scale u and v to image dimensions
         x = int(u * front_img_width)
         y = int(v * front_img_height)
 
@@ -141,12 +142,6 @@ def cast_ray(orig, dir, spheres, lights, renderModel, depth=0):
         background_color = front_img[x + y * front_img_width]
         return background_color
 
-        # u = 0.5 + math.atan2(dir[0], dir[2]) / (2 * math.pi)
-        # v = 0.5 + math.asin(dir[1]) / math.pi
-        # envmap_x = int(u * envmap_width)
-        # envmap_y = int(v * envmap_height)
-        # background_color = envmap[envmap_x + envmap_y * envmap_width]
-        # return background_color
 
     reflect_dir = dir - 2.0 * np.dot(dir, N) * N
     reflectMagnitude = np.linalg.norm(reflect_dir)
@@ -159,8 +154,8 @@ def cast_ray(orig, dir, spheres, lights, renderModel, depth=0):
     reflect_orig = point - N * 1e-3 if np.dot(reflect_dir, N) < 0 else point + N * 1e-3
     refract_orig = point - N * 1e-3 if np.dot(refract_dir, N) < 0 else point + N * 1e-3
 
-    reflect_color = cast_ray(reflect_orig, reflect_dir, spheres, lights, renderModel, depth + 1)
-    refract_color = cast_ray(refract_orig, refract_dir, spheres, lights, renderModel, depth + 1)
+    reflect_color = cast_ray(reflect_orig, reflect_dir, spheres, lights, renderModel, zoom_factor, maxDepth, depth + 1)
+    refract_color = cast_ray(refract_orig, refract_dir, spheres, lights, renderModel, zoom_factor, maxDepth, depth + 1)
 
     diffuse_light_intensity = 0
     specular_light_intensity = 0
@@ -184,12 +179,12 @@ def cast_ray(orig, dir, spheres, lights, renderModel, depth=0):
     return diffuse_color * diffuse_light_intensity * albedo_0 + np.array([1.0, 1.0,
                                                                       1.0]) * specular_light_intensity * albedo_1 + reflect_color * albedo_2 + refract_color * albedo_3
 
-def render(spheres, lights, renderModel):
+def render(imgSize, spheres, lights, renderModel, zoomFactor, maxDepth):
     print('Render Started')
 
     renderStartTime = time.time()
-    width = 1024
-    height = 768
+    width = imgSize[0]
+    height = imgSize[1]
     fov = math.pi / 2.0 # Field of View of the camera
     framebuffer = [np.array([0, 0, 0])] * (width * height)
 
@@ -202,7 +197,7 @@ def render(spheres, lights, renderModel):
             magnitude = np.linalg.norm(dir)
             dir = dir / magnitude if magnitude != 0 else dir
 
-            framebuffer[i + j * width] = cast_ray(np.array([0, 0, 0]), dir, spheres, lights, renderModel)
+            framebuffer[i + j * width] = cast_ray(np.array([0, 0, 0]), dir, spheres, lights, renderModel, zoomFactor, maxDepth)
 
     image = Image.new("RGB", (width, height))
 
@@ -269,13 +264,20 @@ def load_front_image(filename):
 
 def main():
 
+    frontImg = "tree.jpg"
+    modelName = "objFiles/prism.obj"
+    maxDepth = 4
+    modelx, modely, modelz = (0, 0, -18)
+    modelxR, modelyR, modelzR = (90, 45, 0)
+    imgSize = (1024, 768)
+    zoomFactor = 2
 
     start_time = time.time()
 
     print('Main program started')
 
     # envmap, envmap_width, envmap_height = load_environment_map("envmap.jpg")
-    load_front_image("tree.jpg")
+    load_front_image(frontImg)
 
     print('Environment loaded')
     ivory = Material(1.0, (0.6, 0.3, 0.1, 0.0), (0.4, 0.4, 0.3), 50.0)
@@ -304,30 +306,33 @@ def main():
     renderModel = None
 
     if load_model:
-        renderModel = Model('objFiles/prism.obj', glass, 0, 0, -18)
+        # Arguments are name of obj File, material, x, y , z (coordinates)
+        renderModel = Model(modelName, glass, modelx, modely, modelz)
         print("Obj Model Created")
-        renderModel.rotate(90, 45, 0)
-
-
-    # Arguments are name of obj File, material, x, y , z (coordinates)
-    # renderModel = Model('objFiles/prism.obj', glass, 0, 0, -18)
-
+        # Rotation around x, y, and z axis (degrees) CCW
+        # X axis -> Left to right horizontal on the screen
+        # Y axis -> Bottom to top vertical on the screen
+        # Z axis -> Out of the screen
+        renderModel.rotate(modelxR, modelyR, modelzR)
 
     model_end_time = time.time()
     execution_time = (model_end_time - model_start_time) / 60.0
     print("Obj Model Created")
     print(f"Obj Model Creation time: {execution_time: .3f} minutes")
 
-    # Rotation around x, y, and z axis (degrees) CCW
-    # X axis -> Left to right horizontal on the screen
-    # Y axis -> Bottom to top vertical on the screen
-    # Z axis -> Out of the screen
-
-    render(spheres,lights, renderModel)
+    render(imgSize, spheres,lights, renderModel, zoomFactor, maxDepth)
 
     end_time = time.time()  # Stop measuring the execution time
     execution_time = (end_time - start_time) / 60.0
     print(f"Total execution time: {execution_time: .3f} minutes")
+
+    # imagze size - DONE
+    # model fileName - DONE
+    # materials - DONE
+    # max depth - DONE
+    # model coordinates - DONE
+    # model rotation - DONE
+    # zoomFactor - DONE
 
 if __name__ == "__main__":
     main()
