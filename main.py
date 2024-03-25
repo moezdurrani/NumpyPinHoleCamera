@@ -261,7 +261,7 @@ def main(args):
     grayEasy = Material(1.0, (1.0, 0.0, 0.0, 0.0), (0.5, 0.5, 0.5), 0.0)
 
     spheres = []
-    spheres.append(Sphere(np.array([0.0, 0.0, -18]), 4, glass))
+    # spheres.append(Sphere(np.array([0.0, 0.0, -18]), 4, glass))
 
     lights = []
     lights.append(light(np.array([-20, 20, 20]), 1.5))
@@ -270,7 +270,7 @@ def main(args):
 
     print('Lights, and Materials Loaded')
 
-    load_model = False  # Set this to False to skip loading the 3D model
+    load_model = True  # Set this to False to skip loading the 3D model
     renderModel = None
 
     if load_model:
