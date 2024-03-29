@@ -28,16 +28,6 @@ The "maxDepth" parameter specifies the maximum depth for ray tracing recursion, 
 The "imgWidth" and "imgHeight" inputs set the resolution of the output image, dictating how many pixels wide and tall the final image will be. Lastly, the "zoomFactor" input allows for scaling of the background image, effectively zooming in or out to adjust how the background image fits within the scene. Increasing the zoomfactore will zoom out of the image that is in the background. 
 
 
-<table align="center">
-  <tr>
-    <th>Zoom Factor (min)</th>
-    <th>Image</th>
-  </tr>
-  <tr>
-    <td>2</td>
-    <td><img src="https://github.com/moezdurrani/NumpyPinHoleCamera/blob/main/images/Zoom2.png" alt="gray cube"></td>
-  </tr>
-</table>
 
 <table align="center">
   <tr>
@@ -53,7 +43,6 @@ The "imgWidth" and "imgHeight" inputs set the resolution of the output image, di
     <td>zoom Factor 4</td>
   </tr>
 <tr>
-    <td><img src="https://github.com/moezdurrani/NumpyPinHoleCamera/blob/main/images/Zoom3.png" alt="gray cube"></td>
     <td><img src="https://github.com/moezdurrani/NumpyPinHoleCamera/blob/main/images/Zoom3.png" alt="gray cube"></td>
   </tr>
 </table>
