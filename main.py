@@ -225,7 +225,7 @@ def render(imgSize, spheres, lights, renderModel, zoomFactor, maxDepth):
     renderEndTime = time.time()
     renderTime = (renderEndTime - renderStartTime) / 60
     print(f"Render Time: {renderTime: .3f} mins")
-    image.save("out.png", "PNG")
+    image.save("Spherezoom3.png", "PNG")
 
 def load_front_image(filename):
     global front_img, front_img_width, front_img_height
