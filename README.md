@@ -38,3 +38,22 @@ The "imgWidth" and "imgHeight" inputs set the resolution of the output image, di
     <td><img src="https://github.com/moezdurrani/NumpyPinHoleCamera/blob/main/images/Zoom2.png" alt="gray cube"></td>
   </tr>
 </table>
+
+<table align="center">
+  <tr>
+    <th>Zoom Factor 1</th>
+    <th>zoom Factor 2</th>
+  </tr>
+  <tr>
+    <td><img src="https://github.com/moezdurrani/NumpyPinHoleCamera/blob/main/images/Zoom1.png" alt="gray cube"></td>
+    <td><img src="https://github.com/moezdurrani/NumpyPinHoleCamera/blob/main/images/Zoom2.png" alt="gray cube"></td>
+  </tr>
+<tr>
+    <td>Zoom Factor 3</td>
+    <td>zoom Factor 4</td>
+  </tr>
+<tr>
+    <td><img src="https://github.com/moezdurrani/NumpyPinHoleCamera/blob/main/images/Zoom3.png" alt="gray cube"></td>
+    <td><img src="https://github.com/moezdurrani/NumpyPinHoleCamera/blob/main/images/Zoom3.png" alt="gray cube"></td>
+  </tr>
+</table>
