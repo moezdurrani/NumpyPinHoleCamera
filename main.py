@@ -225,7 +225,7 @@ def render(imgSize, spheres, lights, renderModel, zoomFactor, maxDepth):
     renderEndTime = time.time()
     renderTime = (renderEndTime - renderStartTime) / 60
     print(f"Render Time: {renderTime: .3f} mins")
-    image.save("Spherezoom3.png", "PNG")
+    image.save("out.png", "PNG")
 
 def load_front_image(filename):
     global front_img, front_img_width, front_img_height
@@ -270,7 +270,7 @@ def main(args):
 
     print('Lights, and Materials Loaded')
 
-    load_model = True  # Set this to False to skip loading the 3D model
+    load_model = False  # Set this to False to skip loading the 3D model
     renderModel = None
 
     if load_model:
