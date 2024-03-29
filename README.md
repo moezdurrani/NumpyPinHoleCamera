@@ -1,7 +1,9 @@
 # NumpyPinHoleCamera
 
 The initial version of my code included custom functions and objects that became obstacles when attempting to optimize with libraries such as Dask or NumPy. To address this, I rewrote the entire codebase, ensuring it utilizes only NumPy arrays, thereby eliminating any custom elements.
-[Here](https://drive.google.com/file/d/1CTpnoTzZqm15pKm0bxzPnkPbqMzmVhuZ/view?usp=sharing) is the link to the previous versions of the code.
+[Here](https://github.com/moezdurrani/ChromaticAberration) is the link to the previous versions of the code.
+
+https://drive.google.com/file/d/1CTpnoTzZqm15pKm0bxzPnkPbqMzmVhuZ/view?usp=sharing
 
 Additionally, the code was modified to be able to run from the terminal using the following input
 
