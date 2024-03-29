@@ -3,9 +3,10 @@
 The initial version of my code included custom functions and objects that became obstacles when attempting to optimize with libraries such as Dask or NumPy. To address this, I rewrote the entire codebase, ensuring it utilizes only NumPy arrays, thereby eliminating any custom elements.
 [Here](https://github.com/moezdurrani/ChromaticAberration) is the link to the previous versions of the code.
 
-[CLI Research Video.mov](..%2F..%2F..%2F..%2F..%2FDesktop%2FCLI%20Research%20Video.mov)
+[Here](https://drive.google.com/file/d/1V2--q_knE8TUE4qh9Bu2tR653AiOJLmq/view?usp=sharing) is a video of the program running. 
 
-https://drive.google.com/file/d/1CTpnoTzZqm15pKm0bxzPnkPbqMzmVhuZ/view?usp=sharing
+<iframe src="https://drive.google.com/file/d/1V2--q_knE8TUE4qh9Bu2tR653AiOJLmq/view?usp=sharing" width="600" height="400"></iframe>
+
 
 Furthermore, I have made modifications to enable running the code directly from the terminal with inputs like the following:
 
