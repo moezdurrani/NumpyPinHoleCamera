@@ -5,7 +5,7 @@ The initial version of my code included custom functions and objects that became
 
 https://drive.google.com/file/d/1CTpnoTzZqm15pKm0bxzPnkPbqMzmVhuZ/view?usp=sharing
 
-Additionally, the code was modified to be able to run from the terminal using the following input
+Furthermore, I have made modifications to enable running the code directly from the terminal with inputs like the following:
 
 ```
 python3 main.py \
@@ -23,11 +23,18 @@ python3 main.py \
   --zoomFactor 3
 ```
 
-The "frontImg" input takes the name of the image file that is going to be in the background. The "modelName" input takes the name of the 3d model that needs to be rendered and its location inside the main folder of the code.
-The "maxDepth" parameter specifies the maximum depth for ray tracing recursion, allowing for a certain number of reflections within the rendered scene. The parameters "modelx", "modely", and "modelz" define the 3D coordinates for the position of the model within the scene. These are followed by "modelxR", "modelyR", and "modelzR", which determine the rotation of the model around the x, y, and z axes, respectively, providing control over the orientation of the model.
-The "imgWidth" and "imgHeight" inputs set the resolution of the output image, dictating how many pixels wide and tall the final image will be. Lastly, the "zoomFactor" input allows for scaling of the background image, effectively zooming in or out to adjust how the background image fits within the scene. Increasing the zoomfactore will zoom out of the image that is in the background. 
+<ul>
+<li>The --frontImg parameter specifies the background image file name</li>
+<li>The --modelName parameter identifies the 3D model to be rendered and its location within the main code folder</li>
+<li>The --maxDepth parameter determines the maximum depth for ray tracing recursion, allowing for a specific number of reflections within the scene</li>
+<li>The modelx, modely, and modelz parameters set the 3D coordinates for the model's position within the scene, while modelxR, modelyR, and modelzR control the model's rotation around the x, y, and z axes, respectively</li>
+<li>The --imgWidth and --imgHeight inputs define the output image's resolution</li>
+<li>The --zoomFactor adjusts the background image scaling, effectively zooming in or out to fit the scene. Increasing the zoom factor zooms out, offering a broader view of the background image</li>
+</ul>
 
+Below are some examples of rendered images.
 
+<h3>Without Any object in the scene</h3>
 
 <table align="center">
   <tr>
@@ -39,10 +46,28 @@ The "imgWidth" and "imgHeight" inputs set the resolution of the output image, di
     <td><img src="https://github.com/moezdurrani/NumpyPinHoleCamera/blob/main/images/Zoom2.png" alt="gray cube"></td>
   </tr>
 <tr>
-    <td>Zoom Factor 3</td>
-    <td>zoom Factor 4</td>
+    <th>Zoom Factor 3</th>
   </tr>
 <tr>
     <td><img src="https://github.com/moezdurrani/NumpyPinHoleCamera/blob/main/images/Zoom3.png" alt="gray cube"></td>
+  </tr>
+</table>
+
+<h3>With a glass sphere in the scene</h3>
+
+<table align="center">
+  <tr>
+    <th>Zoom Factor 1</th>
+    <th>zoom Factor 2</th>
+  </tr>
+  <tr>
+    <td><img src="https://github.com/moezdurrani/NumpyPinHoleCamera/blob/main/images/Spherezoom1.png" alt="gray cube"></td>
+    <td><img src="https://github.com/moezdurrani/NumpyPinHoleCamera/blob/main/images/Spherezoom2.png" alt="gray cube"></td>
+  </tr>
+<tr>
+    <th>Zoom Factor 3</th>
+  </tr>
+<tr>
+    <td><img src="https://github.com/moezdurrani/NumpyPinHoleCamera/blob/main/images/Spherezoom3.png" alt="gray cube"></td>
   </tr>
 </table>
