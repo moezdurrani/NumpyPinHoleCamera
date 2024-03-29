@@ -3,6 +3,8 @@
 The initial version of my code included custom functions and objects that became obstacles when attempting to optimize with libraries such as Dask or NumPy. To address this, I rewrote the entire codebase, ensuring it utilizes only NumPy arrays, thereby eliminating any custom elements.
 [Here](https://github.com/moezdurrani/ChromaticAberration) is the link to the previous versions of the code.
 
+[CLI Research Video.mov](..%2F..%2F..%2F..%2F..%2FDesktop%2FCLI%20Research%20Video.mov)
+
 https://drive.google.com/file/d/1CTpnoTzZqm15pKm0bxzPnkPbqMzmVhuZ/view?usp=sharing
 
 Furthermore, I have made modifications to enable running the code directly from the terminal with inputs like the following:
@@ -34,12 +36,12 @@ python3 main.py \
 
 Below are some examples of rendered images.
 
-<h3>Without Any object in the scene</h3>
+<h3>Without any object in the scene</h3>
 
 <table align="center">
   <tr>
     <th>Zoom Factor 1</th>
-    <th>zoom Factor 2</th>
+    <th>Zoom Factor 2</th>
   </tr>
   <tr>
     <td><img src="https://github.com/moezdurrani/NumpyPinHoleCamera/blob/main/images/Zoom1.png" alt="gray cube"></td>
@@ -58,7 +60,7 @@ Below are some examples of rendered images.
 <table align="center">
   <tr>
     <th>Zoom Factor 1</th>
-    <th>zoom Factor 2</th>
+    <th>Zoom Factor 2</th>
   </tr>
   <tr>
     <td><img src="https://github.com/moezdurrani/NumpyPinHoleCamera/blob/main/images/Spherezoom1.png" alt="gray cube"></td>
