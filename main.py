@@ -126,7 +126,7 @@ def cast_ray(orig, dir, spheres, lights, renderModel, zoom_factor, maxDepth, dep
 
         # Check if the scaled coordinates are out of the image bounds
         if u < 0 or u > 1 or v < 0 or v > 1:
-            return np.array([0, 0, 0])
+             return np.array([0, 0, 0])
 
         # Scale u and v to image dimensions
         x = int(u * front_img_width)
@@ -219,13 +219,30 @@ def render(imgSize, spheres, lights, renderModel, zoomFactor, maxDepth):
             )
             image.putpixel((i, j), (r, g, b))
 
+    # Convert the image to a NumPy array to find the non-black region
+    npImage = np.array(image)
+    nonBlackPixelsMask = np.any(npImage != [0, 0, 0], axis=-1)
+
+    # If there are non-black pixels, proceed with finding the bounding box
+    if np.any(nonBlackPixelsMask):
+        nonBlackPixelCoords = np.argwhere(nonBlackPixelsMask)
+        topLeft = nonBlackPixelCoords.min(axis=0)
+        bottomRight = nonBlackPixelCoords.max(axis=0)
+
+        # Use slicing to get the cropped image
+        croppedImageArray = npImage[topLeft[0]:bottomRight[0] + 1, topLeft[1]:bottomRight[1] + 1]
+        cropped_image = Image.fromarray(croppedImageArray)
+        cropped_image.save("CroppedImage.png")
+    else:
+        print("The rendered image is entirely black. No cropping will be done.")
+
     print("")
     print('Render Ended')
 
     renderEndTime = time.time()
     renderTime = (renderEndTime - renderStartTime) / 60
     print(f"Render Time: {renderTime: .3f} mins")
-    image.save("out.png", "PNG")
+    image.save("RenderedImage.png", "PNG")
 
 def load_front_image(filename):
     global front_img, front_img_width, front_img_height
