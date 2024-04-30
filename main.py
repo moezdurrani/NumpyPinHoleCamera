@@ -179,7 +179,7 @@ def cast_ray(orig, dir, spheres, lights, renderModel, zoom_factor, maxDepth, dep
     return diffuse_color * diffuse_light_intensity * albedo_0 + np.array([1.0, 1.0,
                                                                       1.0]) * specular_light_intensity * albedo_1 + reflect_color * albedo_2 + refract_color * albedo_3
 
-def render(imgSize, spheres, lights, renderModel, zoomFactor, maxDepth):
+def render(imgSize, spheres, lights, renderModel, zoomFactor, maxDepth, frontImg):
 
     print('Rendering Started')
     renderStartTime = time.time()
@@ -238,7 +238,7 @@ def render(imgSize, spheres, lights, renderModel, zoomFactor, maxDepth):
     else:
         print("The rendered image is entirely black. No cropping will be done.")
 
-    errorCalculation("tree.jpg", "CroppedImage.png")
+    errorCalculation(frontImg, "CroppedImage.png")
 
     print("")
     print('Render Ended')
@@ -357,7 +357,7 @@ def main(args):
         print(f"3D Model Creation Time: {modelExecutionTime: .3f} mins")
 
 
-    render(imgSize, spheres,lights, renderModel, zoomFactor, maxDepth)
+    render(imgSize, spheres,lights, renderModel, zoomFactor, maxDepth, frontImg)
 
     mainEndTime = time.time()  # Stop measuring the execution time
     mainExecutionTime = (mainEndTime - mainStartTime) / 60.0
