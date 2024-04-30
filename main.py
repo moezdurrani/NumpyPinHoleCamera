@@ -1,5 +1,7 @@
 import argparse
 import sys
+
+import cv2
 from PIL import Image
 import math
 from model import Model
@@ -231,10 +233,12 @@ def render(imgSize, spheres, lights, renderModel, zoomFactor, maxDepth):
 
         # Use slicing to get the cropped image
         croppedImageArray = npImage[topLeft[0]:bottomRight[0] + 1, topLeft[1]:bottomRight[1] + 1]
-        cropped_image = Image.fromarray(croppedImageArray)
-        cropped_image.save("CroppedImage.png")
+        croppedImage = Image.fromarray(croppedImageArray)
+        croppedImage.save("CroppedImage.png")
     else:
         print("The rendered image is entirely black. No cropping will be done.")
+
+    errorCalculation("tree.jpg", "CroppedImage.png")
 
     print("")
     print('Render Ended')
@@ -243,6 +247,52 @@ def render(imgSize, spheres, lights, renderModel, zoomFactor, maxDepth):
     renderTime = (renderEndTime - renderStartTime) / 60
     print(f"Render Time: {renderTime: .3f} mins")
     image.save("RenderedImage.png", "PNG")
+
+
+def errorCalculation(origImg, croppedImg):
+    # Read images
+    original = cv2.imread(origImg)
+    cropped = cv2.imread(croppedImg)
+
+    # Use template matching (SSD - Sum of Squared Differences)
+    result = cv2.matchTemplate(original, cropped, cv2.TM_SQDIFF_NORMED)
+
+    # Find minimum value (most similar position)
+    minVal, _, minLoc, _ = cv2.minMaxLoc(result)
+
+    # Extract top-left corner coordinates
+    x1, y1 = minLoc
+
+    # Check if cropped area found confidently (adjust threshold as needed)
+    if minVal > 0.9:
+        print("Cropped area not confidently found in original image.")
+        return
+
+    # Width and height of cropped image
+    w, h = cropped.shape[:2]
+
+    # Calculate bottom-right corner coordinates
+    x2 = x1 + w
+    y2 = y1 + h
+
+    # Extract cropped area from original image
+    foundArea = original[y1:y2, x1:x2]
+
+    # Resize cropped image to match found_area dimensions (assuming channels are the same)
+    if cropped.shape[:2] != foundArea.shape[:2]:
+        cropped = cv2.resize(cropped, dsize=(foundArea.shape[1], foundArea.shape[0]))
+
+    # Calculate normalized mean squared error (MSE)
+    mse = np.mean((cropped - foundArea) ** 2)  # Use NumPy for efficient calculations
+    normalized_error = mse / (255 ** 2)  # Normalize by max possible pixel intensity
+    percent = normalized_error * 100
+    print() # prints an empty line
+    print(f"Normalized Mean Squared Error Percentage: {percent: .10f} %")
+
+    # Display cropped area
+    # cv2.imshow("Cropped Area", found_area)
+    # cv2.waitKey(0)
+    # cv2.destroyAllWindows()
 
 def load_front_image(filename):
     global front_img, front_img_width, front_img_height
